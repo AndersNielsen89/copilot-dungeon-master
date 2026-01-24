@@ -76,22 +76,6 @@ A dark curse has fallen upon the village of Thornhaven. Livestock have been foun
 - Boss fight against a bugbear shaman
 - Meaningful choices and consequences
 
-## Technical Details
-
-### Architecture
-
-```
-copilot_dm/
-├── main.py           # Game loop and entry point
-├── characters/       # Character system (classes, species, pre-gens)
-├── monsters/         # Monster stat blocks and bestiary
-├── rules/            # D&D 5E rules engine (dice, combat, conditions)
-├── game/             # Game state and combat management
-├── tools/            # Copilot tools for rules enforcement
-├── ui/               # Rich terminal UI components
-└── data/             # System prompts and campaign content
-```
-
 ### Rules Implementation
 
 - **PHB 2024 Accurate**: Implements the latest D&D rules
@@ -123,7 +107,7 @@ copilot auth login
 
 Built with:
 - Python 3.11+
-- [GitHub Copilot SDK](https://github.com/github/github-copilot-sdk-python) - AI integration
+- [GitHub Copilot SDK](https://github.com/github/copilot-sdk) - AI integration
 - [Rich](https://github.com/Textualize/rich) - Terminal UI
 - [Pydantic](https://docs.pydantic.dev/) - Data validation
 

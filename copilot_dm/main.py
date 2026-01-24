@@ -255,10 +255,10 @@ async def async_main() -> None:
 ## Response Format - ALWAYS FOLLOW THIS
 1. Brief scene/action description (2-4 sentences)
 2. Any NPC dialogue (keep it short!)
-3. End with "What do you do?" and 1-3 suggested actions like:
-   > Investigate the noise
-   > Talk to the innkeeper
-   > Draw your weapon
+3. End with "What do you do?" and 1-3 numbered suggested actions like:
+   1. Investigate the noise
+   2. Talk to the innkeeper
+   3. Draw your weapon
 
 ## The Adventure
 Thornhaven village: mysterious attacks, missing herbalist Lyssa in Thornwood Forest. Goal: find cursed cave, defeat Grimfang the Bugbear.

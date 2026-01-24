@@ -22,11 +22,14 @@ def display_title() -> None:
     title = """
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║                    COPILOT DUNGEON MASTER                 ║
+║                THE COPILOT DUNGEON MASTER                 ║
 ║                                                           ║
-║              Solo D&D 5E 2024 Adventure                   ║
+║        A Solitary D&D 5E Campaign (2024 Rules)            ║
+║                                                           ║
+║         The Dungeon Remembers. Roll Carefully.            ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
+
     """
     console.print(title, style="bold cyan")
 

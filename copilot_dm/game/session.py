@@ -35,7 +35,7 @@ class DMSession:
         # Create a session with system message
         self.session = await self.client.create_session({
             "system_message": self.system_prompt,
-            "streaming": True,
+            "streaming": True
         })
         
         # Set up event handler for streaming responses
