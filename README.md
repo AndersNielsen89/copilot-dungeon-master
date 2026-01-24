@@ -27,9 +27,6 @@ A solo D&D 5th Edition (2024 rules) terminal adventure where GitHub Copilot serv
 ## Installation
 
 ```bash
-# Clone or navigate to the project
-cd C:\PyPojects\CopilotDM
-
 # Install the package
 pip install -e .
 ```
