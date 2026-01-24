@@ -2,8 +2,6 @@
 
 A solo D&D 5th Edition (2024 rules) terminal adventure where GitHub Copilot serves as your Dungeon Master.
 
-## ✅ Status: FULLY FUNCTIONAL & TESTED
-
 ## Features
 
 - 🎲 **Accurate D&D 5E 2024 Rules**: Complete implementation of dice rolling, ability checks, combat, conditions, and spellcasting
