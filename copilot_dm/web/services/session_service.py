@@ -12,10 +12,10 @@ from fastapi import HTTPException
 from ...characters.pregens import get_pregen_character, list_pregen_characters
 from ...game.state import GameState
 from ...game.session import DMSession
-from ...rules.dice import RollType, roll_d20, roll_damage
+from ...rules.roll_commands import perform_player_roll
 from ..prompts import build_condensed_prompt, build_intro
 from ..repositories.session_repository import SessionRepository, SessionState
-from ..schemas import ActionResponse, PlayerStateResponse, PlayerSummary, StartSessionResponse
+from ..schemas import ActionResponse, CharacterSummary, PlayerStateResponse, PlayerSummary, StartSessionResponse
 
 
 class SessionService:
@@ -45,12 +45,12 @@ class SessionService:
         return StartSessionResponse(
             session_id=session_id,
             intro=intro,
-            character={
-                "name": character.name,
-                "class": character.character_class,
-                "species": character.species,
-                "level": str(character.level),
-            },
+            character=CharacterSummary(
+                name=character.name,
+                character_class=character.character_class,
+                species=character.species,
+                level=character.level,
+            ),
         )
 
     async def send_action(self, session_id: str, action: str) -> ActionResponse:
@@ -59,21 +59,22 @@ class SessionService:
         if not action:
             raise HTTPException(status_code=400, detail="Action cannot be empty")
 
-        self._append_log(session, "player", action)
+        async with session.lock:
+            self._append_log(session, "player", action)
 
-        if action.lower().startswith("roll "):
-            roll_result = self._perform_player_roll(action[5:].strip())
-            self._append_log(session, "system", roll_result)
-            return ActionResponse(response=roll_result)
+            if action.lower().startswith("roll "):
+                roll_result = perform_player_roll(action[5:].strip())
+                self._append_log(session, "system", roll_result)
+                return ActionResponse(response=roll_result)
 
-        response_text = await session.dm_session.send_message(action)
-        self._append_log(session, "dm", response_text)
+            response_text = await session.dm_session.send_message(action)
+            self._append_log(session, "dm", response_text)
 
-        system_messages = self._post_response_updates(session)
-        for message in system_messages:
-            self._append_log(session, "system", message)
+            system_messages = self._post_response_updates(session)
+            for message in system_messages:
+                self._append_log(session, "system", message)
 
-        return ActionResponse(response=response_text, system_messages=system_messages)
+            return ActionResponse(response=response_text, system_messages=system_messages)
 
     async def stream_action(self, session_id: str, action: str) -> AsyncIterator[str]:
         session = self._get_session(session_id)
@@ -81,29 +82,30 @@ class SessionService:
         if not action:
             raise HTTPException(status_code=400, detail="Action cannot be empty")
 
-        self._append_log(session, "player", action)
+        async with session.lock:
+            self._append_log(session, "player", action)
 
-        if action.lower().startswith("roll "):
-            roll_result = self._perform_player_roll(action[5:].strip())
-            self._append_log(session, "system", roll_result)
-            yield self._encode_event({"type": "chunk", "content": roll_result})
+            if action.lower().startswith("roll "):
+                roll_result = perform_player_roll(action[5:].strip())
+                self._append_log(session, "system", roll_result)
+                yield self._encode_event({"type": "chunk", "content": roll_result})
+                yield self._encode_event({"type": "complete"})
+                return
+
+            chunks: list[str] = []
+            async for chunk in session.dm_session.send_message_streaming(action):
+                chunks.append(chunk)
+                yield self._encode_event({"type": "chunk", "content": chunk})
+
+            response_text = "".join(chunks)
+            self._append_log(session, "dm", response_text)
+
+            system_messages = self._post_response_updates(session)
+            for message in system_messages:
+                self._append_log(session, "system", message)
+                yield self._encode_event({"type": "system", "content": message})
+
             yield self._encode_event({"type": "complete"})
-            return
-
-        chunks: list[str] = []
-        async for chunk in session.dm_session.send_message_streaming(action):
-            chunks.append(chunk)
-            yield self._encode_event({"type": "chunk", "content": chunk})
-
-        response_text = "".join(chunks)
-        self._append_log(session, "dm", response_text)
-
-        system_messages = self._post_response_updates(session)
-        for message in system_messages:
-            self._append_log(session, "system", message)
-            yield self._encode_event({"type": "system", "content": message})
-
-        yield self._encode_event({"type": "complete"})
 
     def get_player_state(self, session_id: str) -> PlayerStateResponse:
         session = self._get_session(session_id)
@@ -169,46 +171,3 @@ class SessionService:
             system_messages.append("💀 You have fallen. You can choose to retry or end the session.")
 
         return system_messages
-
-    def _perform_player_roll(self, dice_input: str) -> str:
-        dice_input = dice_input.lower().strip()
-
-        roll_type = RollType.NORMAL
-        if " advantage" in dice_input or " adv" in dice_input:
-            roll_type = RollType.ADVANTAGE
-            dice_input = dice_input.replace(" advantage", "").replace(" adv", "").strip()
-        elif " disadvantage" in dice_input or " dis" in dice_input:
-            roll_type = RollType.DISADVANTAGE
-            dice_input = dice_input.replace(" disadvantage", "").replace(" dis", "").strip()
-
-        if dice_input.startswith("d") and not dice_input[0].isdigit():
-            dice_input = "1" + dice_input
-
-        try:
-            if "d20" in dice_input and roll_type != RollType.NORMAL:
-                modifier = 0
-                if "+" in dice_input:
-                    parts = dice_input.split("+")
-                    modifier = int(parts[1])
-                elif "-" in dice_input:
-                    parts = dice_input.split("-")
-                    modifier = -int(parts[1])
-
-                result = roll_d20(modifier, roll_type)
-                roll_type_str = "with advantage" if roll_type == RollType.ADVANTAGE else "with disadvantage"
-                output = f"🎲 Rolling d20 {roll_type_str}: {result}"
-
-                if result.is_critical():
-                    output += " [bold green]NATURAL 20![/bold green]"
-                elif result.is_fumble():
-                    output += " [bold red]NATURAL 1![/bold red]"
-
-                return output
-
-            result = roll_damage(dice_input)
-            return f"🎲 Rolling {dice_input}: {result}"
-        except Exception:
-            return (
-                "Invalid dice notation. Try formats like 'd20', '1d8+3', '2d6', "
-                "'d20 advantage'."
-            )

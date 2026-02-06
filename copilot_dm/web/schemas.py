@@ -11,12 +11,24 @@ class StartSessionRequest(BaseModel):
     character_name: str
 
 
+class CharacterSummary(BaseModel):
+    """Summary of character information."""
+
+    name: str
+    character_class: str = Field(alias="class")
+    species: str
+    level: int
+
+    class Config:
+        populate_by_name = True
+
+
 class StartSessionResponse(BaseModel):
     """Response payload when starting a session."""
 
     session_id: str
     intro: str
-    character: dict[str, str]
+    character: CharacterSummary
 
 
 class ActionRequest(BaseModel):

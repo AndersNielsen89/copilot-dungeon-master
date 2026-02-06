@@ -17,7 +17,7 @@ from .ui.prompts import display_menu, prompt_text, wait_for_enter, prompt_confir
 from .characters.pregens import list_pregen_characters, get_pregen_character
 from .game.state import GameState
 from .game.session import DMSession
-from .rules.dice import roll_damage, roll_d20, RollType
+from .rules.roll_commands import perform_player_roll
 
 
 def load_system_prompt() -> str:
@@ -179,7 +179,7 @@ Let's begin! What do you do first?
             if player_action.lower().startswith("roll "):
                 dice_notation = player_action[5:].strip()
                 if dice_notation:
-                    roll_result = perform_player_roll(dice_notation, game_state)
+                    roll_result = perform_player_roll(dice_notation)
                     console.print(f"\n{roll_result}\n")
                 else:
                     console.print("\n[yellow]Usage: roll <dice> (e.g., 'roll d20', 'roll 2d6+3', 'roll d20 advantage')[/yellow]\n")
