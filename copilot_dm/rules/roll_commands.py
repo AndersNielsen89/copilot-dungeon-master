@@ -9,6 +9,9 @@ def perform_player_roll(dice_input: str) -> str:
     """
     Perform a dice roll for the player.
     
+    This function is self-contained and does not require game state context.
+    Roll results are purely based on the dice notation provided.
+    
     Supports formats like:
     - "d20" or "1d20" - simple roll
     - "d20+5" - roll with modifier
