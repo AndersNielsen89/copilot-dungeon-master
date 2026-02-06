@@ -36,7 +36,7 @@ def perform_player_roll(dice_input: str) -> str:
         roll_type = RollType.DISADVANTAGE
         dice_input = dice_input.replace(" disadvantage", "").replace(" dis", "").strip()
     
-    # Handle simple "d20" format (no number prefix)
+    # Normalize "d20" to "1d20" (prepend "1" if dice notation starts with 'd')
     if dice_input.startswith("d") and not dice_input[0].isdigit():
         dice_input = "1" + dice_input
     
