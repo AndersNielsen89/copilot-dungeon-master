@@ -5,9 +5,11 @@ description = "Solo D&D 5E 2024 terminal game with Copilot as Dungeon Master"
 readme = "README.md"
 requires-python = ">=3.9.13"
 dependencies = [
+    "fastapi>=0.111.0",
     "github-copilot-sdk>=0.1.0",
     "rich>=13.7.0",
     "pydantic>=2.5.0",
+    "uvicorn>=0.30.0",
 ]
 
 [project.scripts]
