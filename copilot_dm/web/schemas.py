@@ -11,12 +11,27 @@ class StartSessionRequest(BaseModel):
     character_name: str
 
 
+class CharacterSummary(BaseModel):
+    """Summary of character information.
+    
+    Note: Uses Field(alias="class") to match the API's JSON schema while
+    avoiding Python's reserved 'class' keyword in the model attribute.
+    """
+
+    name: str
+    character_class: str = Field(alias="class")
+    species: str
+    level: int
+
+    model_config = {"populate_by_name": True}
+
+
 class StartSessionResponse(BaseModel):
     """Response payload when starting a session."""
 
     session_id: str
     intro: str
-    character: dict[str, str]
+    character: CharacterSummary
 
 
 class ActionRequest(BaseModel):
